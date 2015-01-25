@@ -1,7 +1,10 @@
 package com.example.android.blogreader;
 
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.res.Resources;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,8 +30,12 @@ public class MainListActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_list);
 
-        GetBlogPostsTask getBlogPostsTask = new GetBlogPostsTask();
-        getBlogPostsTask.execute();
+        if(isNetworkAvailable()){
+            GetBlogPostsTask getBlogPostsTask = new GetBlogPostsTask();
+            getBlogPostsTask.execute();
+        }else{
+            Toast.makeText(this, "Network is unavailable", Toast.LENGTH_LONG).show();
+        }
 
         Resources resources = getResources();
         mBlogPosTitles = resources.getStringArray(R.array.android_names);
@@ -60,6 +67,17 @@ public class MainListActivity extends ListActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public boolean isNetworkAvailable() {
+        ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
+
+        boolean isAvailable = false;
+        if(networkInfo != null && networkInfo.isConnected()){
+            isAvailable = true;
+        }
+        return isAvailable;
     }
 
     private class GetBlogPostsTask extends AsyncTask<Object, Void, String>{
