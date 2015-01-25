@@ -7,6 +7,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -30,6 +32,7 @@ public class MainListActivity extends ListActivity {
     protected String[] mBlogPosTitles;
     public static final int NUMBER_OF_POSTS = 20;
     public static final String TAG = MainListActivity.class.getSimpleName();
+    protected JSONObject mBlogData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,11 +89,38 @@ public class MainListActivity extends ListActivity {
         return isAvailable;
     }
 
-    private class GetBlogPostsTask extends AsyncTask<Object, Void, String>{
+
+    private void updateList() {
+        if(mBlogData == null){
+           // TODO: Handle error
+        }
+        else{
+            try {
+                JSONArray jsonPosts = mBlogData.getJSONArray("posts");
+                mBlogPosTitles = new String[jsonPosts.length()];
+                for(int i = 0; i < jsonPosts.length(); i++){
+                    JSONObject post = jsonPosts.getJSONObject(i);
+                    String title = post.getString("title");
+                    title= Html.fromHtml(title).toString();
+                    mBlogPosTitles[i] = title;
+                }
+
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mBlogPosTitles);
+                setListAdapter(adapter);
+            }
+            catch (JSONException e) {
+                Log.e(TAG, "Exception caught!", e);
+            }
+        }
+    }
+
+    private class GetBlogPostsTask extends AsyncTask<Object, Void, JSONObject>{
 
         @Override
-        protected String doInBackground(Object... arg0) {
+        protected JSONObject doInBackground(Object... arg0) {
             int responseCode = -1;
+            JSONObject jsonResponse = null;
+
             try {
                 URL blogFeedUrl = new URL("http://blog.teamtreehouse.com/api/get_recent_summary/?count=" + NUMBER_OF_POSTS);
                 HttpURLConnection connection = (HttpURLConnection)blogFeedUrl.openConnection();
@@ -105,16 +135,7 @@ public class MainListActivity extends ListActivity {
                     reader.read(charArray);
                     String responseData = new String(charArray);
 
-                    JSONObject jsonResponse = new JSONObject(responseData);
-                    String status = jsonResponse.getString("status");
-                    Log.v(TAG, status);
-
-                    JSONArray jsonPosts = jsonResponse.getJSONArray("posts");
-                    for(int i = 0; i < jsonPosts.length();i++){
-                        JSONObject jsonPost = jsonPosts.getJSONObject(i);
-                        String title = jsonPost.getString("title");
-                        Log.v(TAG, "Post" + i + ": " + title);
-                    }
+                    jsonResponse = new JSONObject(responseData);
                 }
                 else{
                     Log.i(TAG, "Unsuccessful HTTP Response Code: " + responseCode);
@@ -128,7 +149,15 @@ public class MainListActivity extends ListActivity {
             }catch (Exception e){
                 Log.e(TAG, "Exception caught: ", e);
             }
-            return "Code: " + responseCode;
+            return jsonResponse;
         }
+
+        @Override
+        protected void onPostExecute(JSONObject result){
+            mBlogData = result;
+            updateList();
+        }
+
     }
+
 }
