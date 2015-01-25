@@ -1,5 +1,6 @@
 package com.example.android.blogreader;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.res.Resources;
@@ -92,7 +93,12 @@ public class MainListActivity extends ListActivity {
 
     private void updateList() {
         if(mBlogData == null){
-           // TODO: Handle error
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(getString(R.string.title));
+            builder.setMessage(getString(R.string.error_message));
+            builder.setPositiveButton(android.R.string.ok, null);
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
         else{
             try {

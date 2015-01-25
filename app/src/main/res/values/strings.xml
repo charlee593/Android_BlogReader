@@ -19,5 +19,7 @@
         <item>Hello22</item>
         <item>Hello33</item>
     </string-array>
+    <string name="title">Ooops! sorry!</string>
+    <string name="error_message">There was an error getting data from the blog.</string>
 
 </resources>
