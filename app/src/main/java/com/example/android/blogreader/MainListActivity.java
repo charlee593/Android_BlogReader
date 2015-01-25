@@ -13,6 +13,9 @@ import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -101,7 +104,17 @@ public class MainListActivity extends ListActivity {
                     char[] charArray = new char[contentLength];
                     reader.read(charArray);
                     String responseData = new String(charArray);
-                    Log.v(TAG, responseData);
+
+                    JSONObject jsonResponse = new JSONObject(responseData);
+                    String status = jsonResponse.getString("status");
+                    Log.v(TAG, status);
+
+                    JSONArray jsonPosts = jsonResponse.getJSONArray("posts");
+                    for(int i = 0; i < jsonPosts.length();i++){
+                        JSONObject jsonPost = jsonPosts.getJSONObject(i);
+                        String title = jsonPost.getString("title");
+                        Log.v(TAG, "Post" + i + ": " + title);
+                    }
                 }
                 else{
                     Log.i(TAG, "Unsuccessful HTTP Response Code: " + responseCode);
